@@ -33,6 +33,8 @@ var upgrader = websocket.Upgrader{}
 // response based on the request.
 type Service struct {
 	*httpserver.Server
+	// RequestLogger is called on each request for logging purposes
+	RequestLogger func(req *http.Request)
 }
 
 // Body represents the JSON encoded echo response.
@@ -85,6 +87,9 @@ func (s *Service) handleWebsocket(writer http.ResponseWriter, request *http.Requ
 }
 
 func (s *Service) handleRequest(writer http.ResponseWriter, request *http.Request) {
+	if s.RequestLogger != nil {
+		s.RequestLogger(request)
+	}
 	if request.Header.Get("Connection") == "Upgrade" && strings.Contains(request.Header.Get("Upgrade"), "websocket") {
 		log.Printf("Req: %+v", request.URL)
 		s.handleWebsocket(writer, request)
